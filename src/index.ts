@@ -6,7 +6,7 @@ import {
   isOrchestratorSupported,
   getCapabilityWarnings,
 } from './adapters/capabilities';
-import { ensurePersistentStorage, getStorageQuota } from './adapters/storage-persistence';
+import { ensurePersistentStorage } from './adapters/storage-persistence';
 import { Orchestrator } from './engine/orchestrator';
 
 import type { Job, JobRunInfo, OrchestratorOptions } from './engine/types';
@@ -65,10 +65,32 @@ export function getUiVisibleJobs(): JobRunInfo[] {
 }
 
 // Capabilities and diagnostics
-export { getCapabilities, getCapabilitiesSummary, isOrchestratorSupported, getCapabilityWarnings, getStorageQuota };
+export {
+  getCapabilities,
+  getCapabilitiesSummary,
+  isOrchestratorSupported,
+  getCapabilityWarnings,
+} from './adapters/capabilities';
+
+export { getStorageQuota, ensurePersistentStorage } from './adapters/storage-persistence';
+
+export type { StorageQuotaInfo } from './adapters/storage-persistence';
 
 // Export types for external use
-export type { Job, JobRunInfo, JobProgress, JobStatus } from './engine/types';
+export type {
+  Job,
+  JobRunInfo,
+  JobProgress,
+  JobStatus,
+  OrchestratorOptions,
+  Schedule,
+  IntervalSchedule,
+  OneShotSchedule,
+  FiniteSchedule,
+} from './engine/types';
+
+// Optional alias to keep API friendly
+export type { OrchestratorCapabilities as Capabilities } from './adapters/capabilities';
 
 // Export constants
 export { HOUSEKEEPING_JOB_ID } from './engine/orchestrator';
