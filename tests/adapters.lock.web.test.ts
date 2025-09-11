@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { WebLockAdapter } from '../adapters/lock.web';
+import { WebLockAdapter } from '../src/adapters/lock.web';
 
 describe('WebLockAdapter.tryExclusive', () => {
   beforeEach(() => {

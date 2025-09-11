@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 
-import { openDb, STORE, ANCHOR_PREFIX } from '../adapters/storage.idb';
-import * as Anchors from '../storage/anchors';
-import * as Ledger from '../storage/ledger';
-import * as Prune from '../storage/prune';
+import { openDb, STORE, ANCHOR_PREFIX } from '../src/adapters/storage.idb';
+import * as Anchors from '../src/storage/anchors';
+import * as Ledger from '../src/storage/ledger';
+import * as Prune from '../src/storage/prune';
 
 const getRecord = async (key: string) => {
   const db = await openDb();

@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@qvlt/service-orchestrator Example</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .container {
+        background: #f5f5f5;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+      }
+      .log {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 15px;
+        border-radius: 4px;
+        font-family: 'Monaco', 'Menlo', monospace;
+        font-size: 12px;
+        max-height: 400px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+      }
+      button {
+        background: #007acc;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #005a9e;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .status {
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+      }
+      .status.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .status.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .status.info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🚀 @qvlt/service-orchestrator Example</h1>
+
+    <div class="container">
+      <h2>Browser Support</h2>
+      <div id="support-status" class="status info">Checking browser support...</div>
+      <div id="capabilities"></div>
+    </div>
+
+    <div class="container">
+      <h2>Orchestrator Controls</h2>
+      <button id="start-btn" onclick="startOrchestrator()">Start Orchestrator</button>
+      <button id="stop-btn" onclick="stopOrchestrator()" disabled>Stop Orchestrator</button>
+      <button id="trigger-btn" onclick="triggerBackup()" disabled>Trigger Backup</button>
+      <button id="clear-btn" onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <div class="container">
+      <h2>Job Status</h2>
+      <div id="job-status">No jobs running</div>
+    </div>
+
+    <div class="container">
+      <h2>Console Output</h2>
+      <div id="log" class="log"></div>
+    </div>
+
+    <script type="module">
+      import {
+        startOrchestrator as startOrch,
+        stopOrchestrator as stopOrch,
+        registerJob,
+        triggerJob,
+        getRunningJobs,
+        getJobHistory,
+        isOrchestratorSupported,
+        getCapabilities,
+        getCapabilityWarnings,
+      } from './index.js';
+
+      let orchestratorStarted = false;
+      let backupJobUnregister = null;
+
+      // Override console.log to show in the page
+      const originalLog = console.log;
+      const logElement = document.getElementById('log');
+
+      console.log = function (...args) {
+        originalLog.apply(console, args);
+        const message = args
+          .map((arg) => (typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)))
+          .join(' ');
+        logElement.textContent += message + '\n';
+        logElement.scrollTop = logElement.scrollHeight;
+      };
+
+      // Check browser support on page load
+      function checkBrowserSupport() {
+        const supportStatus = document.getElementById('support-status');
+        const capabilitiesDiv = document.getElementById('capabilities');
+
+        const supported = isOrchestratorSupported();
+        const capabilities = getCapabilities();
+        const warnings = getCapabilityWarnings();
+
+        if (supported) {
+          supportStatus.className = 'status success';
+          supportStatus.textContent = '✅ Orchestrator is supported in this browser';
+        } else {
+          supportStatus.className = 'status error';
+          supportStatus.textContent = '❌ Orchestrator is not supported in this browser';
+          return;
+        }
+
+        capabilitiesDiv.innerHTML = `
+                <h3>Capabilities:</h3>
+                <ul>
+                    <li>IndexedDB: ${capabilities.indexedDB ? '✅' : '❌'}</li>
+                    <li>Service Worker: ${capabilities.serviceWorker ? '✅' : '❌'}</li>
+                    <li>Web Locks: ${capabilities.webLocks ? '✅' : '❌'}</li>
+                    <li>Broadcast Channel: ${capabilities.broadcastChannel ? '✅' : '❌'}</li>
+                </ul>
+            `;
+
+        if (warnings.length > 0) {
+          capabilitiesDiv.innerHTML += `
+                    <h3>Warnings:</h3>
+                    <ul>
+                        ${warnings.map((warning) => `<li>⚠️ ${warning}</li>`).join('')}
+                    </ul>
+                `;
+        }
+      }
+
+      // Start orchestrator
+      window.startOrchestrator = function () {
+        if (orchestratorStarted) return;
+
+        console.log('🚀 Starting orchestrator...');
+        startOrch({
+          maxConcurrentJobs: 3,
+          defaultTimeout: 30000,
+        });
+
+        // Register example jobs
+        backupJobUnregister = registerJob({
+          id: 'backup-data',
+          name: 'Backup Data',
+          schedule: {
+            type: 'interval',
+            everyMs: 10000, // Every 10 seconds
+            runAtStartup: false,
+          },
+          concurrency: 'allow',
+          handler: async (ctx) => {
+            console.log('💾 Starting data backup...');
+            ctx.reportProgress(0, 100, 'Initializing backup');
+
+            for (let i = 0; i < 100; i += 25) {
+              await new Promise((resolve) => setTimeout(resolve, 500));
+              ctx.reportProgress(i + 25, 100, `Backing up ${i + 25}%`);
+            }
+
+            console.log('✅ Backup completed');
+          },
+        });
+
+        orchestratorStarted = true;
+        document.getElementById('start-btn').disabled = true;
+        document.getElementById('stop-btn').disabled = false;
+        document.getElementById('trigger-btn').disabled = false;
+
+        // Start monitoring
+        startJobMonitoring();
+
+        console.log('✅ Orchestrator started with example jobs');
+      };
+
+      // Stop orchestrator
+      window.stopOrchestrator = function () {
+        if (!orchestratorStarted) return;
+
+        console.log('🛑 Stopping orchestrator...');
+
+        if (backupJobUnregister) {
+          backupJobUnregister();
+          backupJobUnregister = null;
+        }
+
+        stopOrch();
+        orchestratorStarted = false;
+
+        document.getElementById('start-btn').disabled = false;
+        document.getElementById('stop-btn').disabled = true;
+        document.getElementById('trigger-btn').disabled = true;
+
+        console.log('✅ Orchestrator stopped');
+      };
+
+      // Trigger backup manually
+      window.triggerBackup = async function () {
+        if (!orchestratorStarted) return;
+
+        try {
+          console.log('🎯 Triggering backup manually...');
+          await triggerJob('backup-data');
+          console.log('✅ Manual backup triggered');
+        } catch (error) {
+          console.log('❌ Failed to trigger backup:', error.message);
+        }
+      };
+
+      // Clear log
+      window.clearLog = function () {
+        logElement.textContent = '';
+      };
+
+      // Monitor running jobs
+      function startJobMonitoring() {
+        const jobStatusDiv = document.getElementById('job-status');
+
+        setInterval(() => {
+          if (!orchestratorStarted) return;
+
+          const running = getRunningJobs();
+          if (running.length > 0) {
+            jobStatusDiv.innerHTML = `
+                        <h3>Running Jobs (${running.length}):</h3>
+                        <ul>
+                            ${running
+                              .map(
+                                (job) => `
+                                <li>
+                                    <strong>${job.jobId}</strong> - 
+                                    Status: ${job.status} - 
+                                    Started: ${new Date(job.startedAt).toLocaleTimeString()}
+                                </li>
+                            `,
+                              )
+                              .join('')}
+                        </ul>
+                    `;
+          } else {
+            jobStatusDiv.textContent = 'No jobs running';
+          }
+        }, 1000);
+      }
+
+      // Initialize page
+      checkBrowserSupport();
+      console.log('📄 Page loaded. Click "Start Orchestrator" to begin.');
+    </script>
+  </body>
+</html>

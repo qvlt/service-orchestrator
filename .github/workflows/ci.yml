@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+    tags-ignore: ['v*']
+  pull_request:
+    branches: [main, dev]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - name: Install dependencies (workspace, strict)
+        run: pnpm -w install --frozen-lockfile
+
+      - name: Lint (no warnings)
+        run: pnpm -w exec eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Pack preview (what would publish)
+        if: matrix.node-version == '22.x'
+        run: |
+          set -euo pipefail
+          OUT="$(pnpm pack)"
+          echo "$OUT"
+          PKG="$(echo "$OUT" | grep -Eo '[^[:space:]]+\.tgz$' | tail -n1)"
+          if [ -z "${PKG:-}" ] || [ ! -f "$PKG" ]; then
+            echo "Could not determine tarball filename from pnpm output"; exit 1;
+          fi
+          echo "Tarball: $PKG"
+          tar -tf "$PKG"
+          rm -f "$PKG"
