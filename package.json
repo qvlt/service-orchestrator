@@ -1,6 +1,6 @@
 {
   "name": "@qvlt/service-orchestrator",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Job orchestrator for background task management",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -26,7 +26,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
-    "test:types": "pnpm run build && node -e \"require('fs').writeFileSync('dist/index.test-d.ts', 'import { expectType } from \\\"tsd\\\";\\nimport * as pkg from \\\"./index\\\";\\n\\n// Test that all main exports exist and have correct types\\nexpectType<typeof pkg.startOrchestrator>(pkg.startOrchestrator);\\nexpectType<typeof pkg.stopOrchestrator>(pkg.stopOrchestrator);\\nexpectType<typeof pkg.registerJob>(pkg.registerJob);\\nexpectType<typeof pkg.triggerJob>(pkg.triggerJob);\\nexpectType<typeof pkg.getRunningJobs>(pkg.getRunningJobs);\\nexpectType<typeof pkg.getJobHistory>(pkg.getJobHistory);\\nexpectType<typeof pkg.isOrchestratorSupported>(pkg.isOrchestratorSupported);\\nexpectType<typeof pkg.getCapabilities>(pkg.getCapabilities);\\nexpectType<typeof pkg.getCapabilityWarnings>(pkg.getCapabilityWarnings);\\n')\" && tsd",
+    "test:types": "pnpm run build && tsd --files tests/types/index.test-d.ts",
     "smoke": "pnpm run build && node tests/smoke-node.cjs && node tests/smoke-esm.mjs",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
