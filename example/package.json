@@ -1,0 +1,19 @@
+{
+  "name": "@qvlt/service-orchestrator-example",
+  "version": "1.0.0",
+  "description": "Example project using @qvlt/service-orchestrator",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js",
+    "lint": "echo 'No linting configured'",
+    "type-check": "echo 'No type checking configured'"
+  },
+  "dependencies": {
+    "@qvlt/service-orchestrator": "file:.."
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
