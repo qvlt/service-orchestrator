@@ -1,0 +1,72 @@
+name: Sync main → dev (post-release, immediate merge)
+
+on:
+  workflow_run:
+    workflows: ['Release']
+    types: [completed]
+  workflow_dispatch: {} # optional for testing
+
+permissions:
+  contents: write # needed to merge
+  pull-requests: write # needed to create PRs
+
+concurrency:
+  group: sync-main-to-dev
+  cancel-in-progress: true
+
+jobs:
+  open-and-merge-now:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open PR and try immediate merge (MERGE only)
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }} # use a PAT only if your policies require it
+          script: |
+            const { owner, repo } = context.repo;
+            const base = 'dev';
+            const head = 'main';
+
+            // 1) Find or create PR main -> dev
+            const existing = await github.paginate(github.rest.pulls.list, {
+              owner, repo, state: 'open', base, head: `${owner}:${head}`
+            });
+            let pr = existing[0];
+            if (!pr) {
+              const created = await github.rest.pulls.create({
+                owner, repo, base, head,
+                title: 'chore: sync main → dev',
+                body: 'Automated back-merge after successful Release workflow.'
+              });
+              pr = created.data;
+              core.info(`Opened PR #${pr.number}`);
+            } else {
+              core.info(`Sync PR already open: #${pr.number}`);
+            }
+
+            // 2) Wait briefly for mergeability to compute, then attempt immediate MERGE
+            async function waitForMergeable(pull_number, attempts = 10, delayMs = 5000) {
+              for (let i = 0; i < attempts; i++) {
+                const r = await github.rest.pulls.get({ owner, repo, pull_number });
+                const state = r.data.mergeable_state; // 'clean','blocked','dirty','unknown',...
+                core.info(`mergeable_state: ${state}`);
+                if (state && state !== 'unknown') return r.data;
+                await new Promise((res) => setTimeout(res, delayMs));
+              }
+              return (await github.rest.pulls.get({ owner, repo, pull_number })).data;
+            }
+
+            const prData = await waitForMergeable(pr.number);
+            const sha = prData.head.sha;
+
+            try {
+              await github.rest.pulls.merge({
+                owner, repo, pull_number: pr.number,
+                merge_method: 'merge', // no squash/rebase
+                sha
+              });
+              core.info('PR merged immediately via MERGE.');
+            } catch (e) {
+              core.notice(`Immediate merge blocked (leaving PR open): ${e.status ?? ''} ${e.message}`);
+            }

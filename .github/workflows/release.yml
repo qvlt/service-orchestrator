@@ -1,0 +1,131 @@
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags: ['v*'] # e.g. v1.2.3
+
+permissions:
+  contents: write # create GitHub Releases
+  checks: read # (if you add API-based gating later)
+  id-token: write # npm provenance
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: pnpm
+          registry-url: https://registry.npmjs.org/
+          always-auth: true
+
+      - name: Install dependencies (workspace, strict)
+        run: pnpm -w install --frozen-lockfile
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Verify package.json version matches tag
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          CURRENT_VERSION="$(jq -r '.version' package.json)"
+          echo "Tag: $VERSION / package.json: $CURRENT_VERSION"
+          test "$CURRENT_VERSION" = "$VERSION"
+
+      # 🔒 QUALITY GATE — must pass before publish
+      - name: Lint (no warnings allowed)
+        run: pnpm -w exec eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Pack preview (pnpm-only, robust)
+        run: |
+          set -euo pipefail
+          OUT="$(pnpm pack)"
+          echo "$OUT"
+          PKG="$(echo "$OUT" | grep -Eo '[^[:space:]]+\.tgz$' | tail -n1)"
+          if [ -z "${PKG:-}" ] || [ ! -f "$PKG" ]; then
+            echo "Could not determine tarball filename from pnpm output"; exit 1;
+          fi
+          echo "Tarball: $PKG"
+          tar -tf "$PKG"
+          rm -f "$PKG"
+
+      - name: Check if version already exists on npm
+        id: exists
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          NAME="$(jq -r .name package.json)"
+          if pnpm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm (with provenance)
+        if: steps.exists.outputs.value == 'false'
+        run: pnpm publish --access public --no-git-checks --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+
+      - name: Find previous tag (for compare link)
+        id: prev
+        run: |
+          git fetch --tags --force
+          PREV="$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || echo "")"
+          echo "prev=$PREV" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        if: steps.exists.outputs.value == 'false'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [ -n "${{ steps.prev.outputs.prev }}" ]; then
+            RANGE="${{ steps.prev.outputs.prev }}...${{ github.ref_name }}"
+          else
+            RANGE="${{ github.ref_name }}"
+          fi
+
+          NOTES="## @qvlt/service-orchestrator v$VERSION
+
+          Install:
+          \`\`\`bash
+          pnpm add @qvlt/service-orchestrator@$VERSION
+          \`\`\`
+
+          Compare: https://github.com/qvlt/service-orchestrator/compare/$RANGE"
+
+          gh release create "${{ github.ref_name }}" \
+            --title "Release $VERSION" \
+            --notes "$NOTES"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Skip (already on npm)
+        if: steps.exists.outputs.value == 'true'
+        run: 'echo "Skipping: ${{ steps.version.outputs.version }} already on npm"'
