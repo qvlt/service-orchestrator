@@ -48,6 +48,12 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: Test types
+        run: pnpm test:types
+
+      - name: Smoke test
+        run: pnpm smoke
+
       - name: Build
         run: pnpm build
 
