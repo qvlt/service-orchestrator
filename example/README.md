@@ -6,32 +6,45 @@ This example demonstrates how to use the `@qvlt/service-orchestrator` package in
 
 ### Prerequisites
 
-1. Build the package first:
+1. Build the package first (from repository root):
+
    ```bash
    pnpm run build
    ```
 
 2. Serve the example files using a local server (required for ES modules):
 
-   **Option A: Using Python**
+   **Option A: Using Python (from repository root)**
+
    ```bash
    # Python 3
    python -m http.server 8000
-   
+
    # Python 2
    python -m SimpleHTTPServer 8000
    ```
 
    **Option B: Using Node.js**
+
    ```bash
+   # From repository root
    npx serve .
    ```
 
    **Option C: Using VS Code Live Server extension**
    - Install the "Live Server" extension
-   - Right-click on `index.html` and select "Open with Live Server"
+   - Right-click on `example/index.html` and select "Open with Live Server"
 
-3. Open your browser and navigate to `http://localhost:8000`
+3. Open your browser and navigate to `http://localhost:8000/example/`
+
+### Quick Start
+
+```bash
+# From repository root:
+pnpm run build
+python -m http.server 8000
+# then open http://localhost:8000/example/
+```
 
 ## What the Example Demonstrates
 
@@ -55,6 +68,7 @@ This example demonstrates how to use the `@qvlt/service-orchestrator` package in
 ## Browser Requirements
 
 The orchestrator requires modern browser features:
+
 - **IndexedDB** (required for job persistence)
 - **Web Locks** (recommended for cross-tab coordination)
 - **BroadcastChannel** (optional, for cross-tab progress updates)
@@ -63,15 +77,19 @@ The orchestrator requires modern browser features:
 ## Troubleshooting
 
 ### Import Errors
+
 If you see import errors, make sure:
+
 1. The package is built (`pnpm run build`)
 2. You're serving the files via HTTP/HTTPS (not file://)
 3. Your browser supports ES modules
 
 ### Browser Compatibility
+
 The example will show a warning if your browser doesn't support the required features. Check the capabilities section for details.
 
 ### Job Not Running
+
 - Ensure the orchestrator is started
 - Check the browser console for any errors
 - Verify that the job schedule is valid

@@ -45,6 +45,9 @@ jobs:
       - name: Lint (no warnings)
         run: pnpm -w exec eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0
 
+      - name: Format check
+        run: pnpm format:check
+
       - name: Test
         run: pnpm test
 

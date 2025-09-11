@@ -72,10 +72,7 @@ export {
   getCapabilityWarnings,
 } from './adapters/capabilities';
 
-export {
-  getStorageQuota,
-  ensurePersistentStorage,
-} from './adapters/storage-persistence';
+export { getStorageQuota, ensurePersistentStorage } from './adapters/storage-persistence';
 
 export type { StorageQuotaInfo } from './adapters/storage-persistence';
 
