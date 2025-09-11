@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
-import { alignToPeriod, jitter, nextIntervalDelay, computeScheduledAt } from '../engine/compute';
+import { alignToPeriod, jitter, nextIntervalDelay, computeScheduledAt } from '../src/engine/compute';
 
-import type { Job } from '../engine/types';
+import type { Job } from '../src/engine/types';
 
 describe('compute helpers', () => {
   it('alignToPeriod floors to start of period', () => {

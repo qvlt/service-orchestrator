@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { Registry } from '../engine/registry';
+import { Registry } from '../src/engine/registry';
 
 describe('Registry', () => {
   it('validates job id and schedule', () => {

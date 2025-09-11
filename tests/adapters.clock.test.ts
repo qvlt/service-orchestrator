@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 
-import { SystemClock } from '../adapters/clock';
+import { SystemClock } from '../src/adapters/clock';
 
 describe('SystemClock', () => {
   it('delegates to Date.now()', () => {

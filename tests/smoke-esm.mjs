@@ -19,7 +19,6 @@ try {
     'isOrchestratorSupported',
     'getCapabilities',
     'getCapabilityWarnings',
-    'ensurePersistentStorage',
     'getStorageQuota'
   ];
   

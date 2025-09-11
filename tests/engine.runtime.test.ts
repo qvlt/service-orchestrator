@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 
-import { runJob } from '../engine/runtime';
+import { runJob } from '../src/engine/runtime';
 
-import type { Deps, Job } from '../engine/types';
+import type { Deps, Job } from '../src/engine/types';
 
 const makeDeps = () => {
   const calls: any[] = [];

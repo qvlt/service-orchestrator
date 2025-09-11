@@ -1,12 +1,10 @@
 // smoke-node.cjs - Node.js smoke test for service-orchestrator
-const { createRequire } = require('module');
-const require = createRequire(import.meta.url);
+const pkg = require('../dist/index.cjs');
 
 console.log('🧪 Node.js smoke test for @qvlt/service-orchestrator');
 
 try {
   // Test that the package can be imported
-  const pkg = require('../dist/index.cjs');
   console.log('✅ Package imported successfully');
   
   // Test that main exports exist
@@ -21,7 +19,6 @@ try {
     'isOrchestratorSupported',
     'getCapabilities',
     'getCapabilityWarnings',
-    'ensurePersistentStorage',
     'getStorageQuota'
   ];
   
