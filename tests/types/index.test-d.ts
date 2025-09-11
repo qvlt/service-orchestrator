@@ -1,4 +1,5 @@
 import { expectType } from 'tsd';
+
 import * as pkg from '../../dist';
 
 // Test that all main exports exist and have correct types

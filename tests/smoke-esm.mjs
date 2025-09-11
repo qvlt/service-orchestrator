@@ -6,11 +6,11 @@ console.log('🧪 ESM smoke test for @qvlt/service-orchestrator');
 try {
   // Test that the package can be imported
   console.log('✅ Package imported successfully');
-  
+
   // Test that main exports exist
   const expectedExports = [
     'startOrchestrator',
-    'stopOrchestrator', 
+    'stopOrchestrator',
     'disposeOrchestrator',
     'registerJob',
     'triggerJob',
@@ -19,9 +19,9 @@ try {
     'isOrchestratorSupported',
     'getCapabilities',
     'getCapabilityWarnings',
-    'getStorageQuota'
+    'getStorageQuota',
   ];
-  
+
   for (const exportName of expectedExports) {
     if (typeof pkg[exportName] === 'function') {
       console.log(`✅ Export '${exportName}' is a function`);
@@ -30,7 +30,7 @@ try {
       process.exit(1);
     }
   }
-  
+
   // Test browser-only functions throw in Node.js
   try {
     pkg.startOrchestrator();
@@ -44,9 +44,8 @@ try {
       process.exit(1);
     }
   }
-  
+
   console.log('🎉 All ESM smoke tests passed!');
-  
 } catch (error) {
   console.error('❌ Smoke test failed:', error.message);
   process.exit(1);

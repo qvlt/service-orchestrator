@@ -17,7 +17,7 @@ async function runTests() {
   console.log('Test 1: Browser support check');
   const supported = isOrchestratorSupported();
   console.log('Orchestrator supported:', supported);
-  
+
   if (!supported) {
     console.log('❌ Tests cannot run - orchestrator not supported');
     return;
@@ -51,7 +51,7 @@ async function runTests() {
     concurrency: 'allow',
     handler: async (ctx) => {
       console.log('Test job running...');
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       console.log('Test job completed');
     },
   });
@@ -68,14 +68,14 @@ async function runTests() {
 
   // Test 6: Running jobs check
   console.log('\nTest 6: Running jobs check');
-  await new Promise(resolve => setTimeout(resolve, 200));
+  await new Promise((resolve) => setTimeout(resolve, 200));
   const running = getRunningJobs();
   console.log('Running jobs:', running.length);
   console.log('✅ Running jobs check passed');
 
   // Test 7: Job history
   console.log('\nTest 7: Job history');
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 500));
   const history = getJobHistory('test-job', 3);
   console.log('Job history entries:', history.length);
   console.log('✅ Job history check passed');

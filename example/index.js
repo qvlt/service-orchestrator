@@ -18,7 +18,7 @@ async function main() {
   console.log('1. Browser Support Check:');
   const supported = isOrchestratorSupported();
   console.log('Orchestrator supported:', supported);
-  
+
   if (!supported) {
     console.log('❌ Orchestrator not supported in this environment');
     return;
@@ -26,7 +26,7 @@ async function main() {
 
   const capabilities = getCapabilities();
   console.log('Capabilities:', capabilities);
-  
+
   const warnings = getCapabilityWarnings();
   if (warnings.length > 0) {
     console.log('Warnings:', warnings);
@@ -55,7 +55,7 @@ async function main() {
     concurrency: 'skip',
     handler: async (ctx) => {
       console.log('🧹 Cleaning up temporary files...');
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       console.log('✅ Cleanup completed');
     },
   });
@@ -72,12 +72,12 @@ async function main() {
     handler: async (ctx) => {
       console.log('💾 Starting data backup...');
       ctx.reportProgress(0, 100, 'Initializing backup');
-      
+
       for (let i = 0; i < 100; i += 20) {
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
         ctx.reportProgress(i + 20, 100, `Backing up ${i + 20}%`);
       }
-      
+
       console.log('✅ Backup completed');
     },
   });
@@ -95,7 +95,7 @@ async function main() {
     concurrency: 'wait',
     handler: async (ctx) => {
       console.log('📊 Generating report...');
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       console.log('✅ Report generated');
     },
   });
@@ -107,11 +107,14 @@ async function main() {
   const monitorInterval = setInterval(() => {
     const running = getRunningJobs();
     if (running.length > 0) {
-      console.log('Running jobs:', running.map(job => ({
-        id: job.jobId,
-        status: job.status,
-        startedAt: new Date(job.startedAt).toLocaleTimeString(),
-      })));
+      console.log(
+        'Running jobs:',
+        running.map((job) => ({
+          id: job.jobId,
+          status: job.status,
+          startedAt: new Date(job.startedAt).toLocaleTimeString(),
+        })),
+      );
     }
   }, 1000);
 
@@ -130,29 +133,32 @@ async function main() {
   console.log('\n6. Job History:');
   setTimeout(() => {
     const history = getJobHistory('generate-report', 5);
-    console.log('Report job history:', history.map(run => ({
-      runKey: run.runKey,
-      status: run.status,
-      scheduledAt: new Date(run.scheduledAt).toLocaleTimeString(),
-      completedAt: run.completedAt ? new Date(run.completedAt).toLocaleTimeString() : 'N/A',
-    })));
+    console.log(
+      'Report job history:',
+      history.map((run) => ({
+        runKey: run.runKey,
+        status: run.status,
+        scheduledAt: new Date(run.scheduledAt).toLocaleTimeString(),
+        completedAt: run.completedAt ? new Date(run.completedAt).toLocaleTimeString() : 'N/A',
+      })),
+    );
   }, 8000);
 
   // Cleanup after 15 seconds
   setTimeout(() => {
     console.log('\n7. Cleanup:');
     clearInterval(monitorInterval);
-    
+
     // Unregister jobs
     cleanupJob();
     backupJob();
     reportJob();
     console.log('✅ Jobs unregistered');
-    
+
     // Stop orchestrator
     stopOrchestrator();
     console.log('✅ Orchestrator stopped');
-    
+
     console.log('\n🎉 Example completed successfully!');
   }, 15000);
 }
