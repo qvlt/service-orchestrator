@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 
-import { JobTracker } from '../engine/job-tracker';
+import { JobTracker } from '../src/engine/job-tracker';
 
 describe('JobTracker', () => {
   it('tracks running -> completed and keeps history', () => {
