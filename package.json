@@ -1,6 +1,6 @@
 {
   "name": "@qvlt/service-orchestrator",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Job orchestrator for background task management",
   "type": "module",
   "main": "./dist/index.cjs",
